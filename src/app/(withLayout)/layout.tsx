@@ -1,19 +1,13 @@
-'use client'
-
 import Footer from "@/components/common/Footer";
 import Navbar from "@/components/common/Navbar";
-import React, { ReactNode } from "react";
+import { type ReactNode } from "react";
 
-const CommonLayout = ({ children }: { children: ReactNode }) => {
-
+export default function CommonLayout({ children }: { children: ReactNode }) {
   return (
-    <div className=" min-h-screen ">
-
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="min-h-screen" >{children}</div>
+      <div className="flex-1">{children}</div>
       <Footer />
     </div>
   );
-};
-
-export default CommonLayout;
+}

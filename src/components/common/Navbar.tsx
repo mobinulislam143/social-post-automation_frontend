@@ -1,219 +1,127 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
-
-import { Heart, Bell, User } from "lucide-react";
-import { IoMenu } from "react-icons/io5";
-
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "../ui/button";
-
-import mainLogo from "@/assets/logo/logo.jpg";
+import { Menu, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RootState } from "@/redux/store";
-import { notificationData } from "@/types/fakeData";
+import { Button } from "@/components/ui/button";
+import { useAppSelector } from "@/store/hooks";
 
-const navItems = [
+const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/property-list", label: "List Your Property" },
-  { href: "/support", label: "Help and Support" },
-  { href: "/explore-stays", label: "Explore Stays" },
+  { href: "/#features", label: "Features" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#about", label: "About" },
 ];
 
 export default function Navbar() {
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
-  const [open, setOpen] = useState(false); // mobile menu
-  const [notifOpen, setNotifOpen] = useState(false);
-
-  const userRole = useSelector(
-    (state: RootState) => state?.auth?.user?.role
-  );
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // close notification on outside click
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setNotifOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    const handler = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
   }, []);
 
   return (
-    <header className="border-b border-gray-100 py-4">
+    <header
+      className={cn(
+        "fixed top-0 inset-x-0 z-50 transition-all duration-300",
+        scrolled
+          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100"
+          : "bg-transparent"
+      )}
+    >
       <div className="container">
         <div className="flex h-16 items-center justify-between">
-
-          {/* LOGO */}
-          <Link href="/" className="flex-shrink-0">
-            <div className="w-[100px] h-[100px] relative">
-              <Image
-                src={mainLogo}
-                alt="logo"
-                fill
-                priority
-                className="object-contain"
-              />
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
             </div>
+            <span>StarterKit</span>
           </Link>
 
-          {/* DESKTOP NAV */}
-          <nav className="hidden lg:flex space-x-8">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "text-sm font-medium border-b-2 pb-1",
-                    isActive
-                      ? "text-gray-900 border-gray-900 font-bold"
-                      : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors",
+                  pathname === link.href
+                    ? "text-brand"
+                    : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* RIGHT ICONS */}
-          <div className="flex items-center space-x-3 lg:space-x-6">
-
-            {/* SAVED */}
-            <Link
-              href="/saved"
-              className="text-gray-500 hover:text-gray-900"
-            >
-              <Heart className="h-6 w-6" />
-            </Link>
-
-            {/* NOTIFICATIONS */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setNotifOpen((prev) => !prev)}
-                className="text-gray-500 hover:text-gray-900"
-              >
-                <Bell className="h-6 w-6" />
-              </button>
-
-              {notifOpen && (
-                <div className="absolute right-0 top-12 w-80 bg-white shadow-lg rounded-md z-50">
-                  <div className="p-4 border-b">
-                    <h2 className="font-semibold text-lg">Notifications</h2>
-                  </div>
-
-                  <div className="max-h-[60vh] overflow-y-auto">
-                    {notificationData.map((n) => (
-                      <div
-                        key={n.id}
-                        className={cn(
-                          "p-4 border-b hover:bg-gray-50",
-                          !n.read && "bg-gray-50"
-                        )}
-                      >
-                        <div className="flex gap-3">
-                          <div className="w-[40px] h-[40px] relative">
-                            <Image
-                              src={mainLogo}
-                              alt="logo"
-                              fill
-                              className="object-contain"
-                            />
-                          </div>
-
-                          <div>
-                            <p className="text-sm text-gray-700">
-                              {n.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {n.time}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    {notificationData.length === 0 && (
-                      <p className="p-4 text-center text-gray-500">
-                        No notifications
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* PROFILE */}
-            <Link
-              href={
-                userRole === "HOST"
-                  ? "/host-profile"
-                  : userRole === "GUEST"
-                  ? "/user-profile"
-                  : userRole === "SUPER_ADMIN"
-                  ? "/admin/overview"
-                  : "/login"
-              }
-              className="text-gray-500 hover:text-gray-900"
-            >
-              <User className="h-6 w-6" />
-            </Link>
+          {/* CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            {isAuthenticated ? (
+              <Link href="/dashboard/overview">
+                <Button size="sm" className="bg-brand hover:bg-brand-dark text-white">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="text-gray-700">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" className="bg-brand hover:bg-brand-dark text-white">
+                    Get started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* MOBILE MENU BUTTON */}
-          <div className="lg:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(true)}
-            >
-              <IoMenu className="w-6 h-6" />
-            </Button>
-          </div>
+          {/* Mobile toggle */}
+          <button
+            className="md:hidden text-gray-700"
+            onClick={() => setOpen((p) => !p)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
 
-      {/* MOBILE SHEET */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="p-6 w-[300px]">
-          <div className="flex flex-col space-y-4">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "text-sm font-medium",
-                    isActive
-                      ? "text-gray-900 font-bold"
-                      : "text-gray-500 hover:text-gray-700"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+      {/* Mobile menu */}
+      {open && (
+        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-3">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              className="block text-sm font-medium text-gray-700 hover:text-brand py-1"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <div className="pt-2 flex flex-col gap-2">
+            <Link href="/login" onClick={() => setOpen(false)}>
+              <Button variant="outline" className="w-full">Sign in</Button>
+            </Link>
+            <Link href="/register" onClick={() => setOpen(false)}>
+              <Button className="w-full bg-brand hover:bg-brand-dark text-white">Get started</Button>
+            </Link>
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
     </header>
   );
 }

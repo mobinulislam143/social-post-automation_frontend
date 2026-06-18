@@ -1,23 +1,21 @@
-import { useSelector } from "react-redux";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { RootState } from "@/redux/store";
+import { jwtDecode, type JwtPayload } from "jwt-decode";
+import { useAppSelector } from "@/store/hooks";
 
 interface DecodedToken extends JwtPayload {
-    id: string;
-    role?: string;
+  id: string;
+  role?: string;
 }
 
 const useDecodedToken = (): DecodedToken | null => {
-    const token = useSelector((state: RootState) => state.auth.accessToken);
+  const token = useAppSelector((state) => state.auth.accessToken);
 
-    if (!token) return null;
+  if (!token) return null;
 
-    try {
-        return jwt.decode(token) as DecodedToken;
-    } catch (error) {
-        console.error("Failed to decode token:", error);
-        return null;
-    }
+  try {
+    return jwtDecode<DecodedToken>(token);
+  } catch {
+    return null;
+  }
 };
 
 export default useDecodedToken;

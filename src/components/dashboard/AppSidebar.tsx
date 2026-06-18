@@ -1,12 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { toast } from "sonner";
-
-
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { logout } from "@/store/slices/authSlice";
 import {
   Sidebar,
   SidebarContent,
@@ -18,105 +16,128 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { Button } from "../ui/button";
-import logo from "@/assets/logo/logo.jpg";
-import { LayoutDashboard, Users, UserCheck, LogOut, Package, HelpCircle, MessageCircle, Settings } from "lucide-react"
+} from "@/components/ui/sidebar";
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  Package,
+  MessageCircle,
+  Settings,
+  LogOut,
+  Zap,
+  ShieldCheck,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Menu items
 const menuItems = [
-  { title: "Dashboard", icon: LayoutDashboard, href: "/dashboard/overview" },
-  { title: "User Management", icon: Users, href: "/dashboard/users" },
-  { title: "Provider Management", icon: UserCheck, href: "/dashboard/providers" },
-  { title: "Quality Management", icon: Package, href: "/dashboard/qualitylist" },
-  { title: "Help Center", icon: HelpCircle, href: "/dashboard/help" },
-  { title: "Message", icon: MessageCircle, href: "/dashboard/messages" },
+  { title: "Overview", icon: LayoutDashboard, href: "/dashboard/overview" },
+  { title: "Users", icon: Users, href: "/dashboard/users" },
+  { title: "Providers", icon: UserCheck, href: "/dashboard/providers" },
+  { title: "Quality", icon: Package, href: "/dashboard/qualitylist" },
+  { title: "Messages", icon: MessageCircle, href: "/dashboard/messages" },
+  { title: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
   { title: "Settings", icon: Settings, href: "/dashboard/settings" },
-]
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
 
   const handleLogout = () => {
-    try {
-      // Clear localStorage and cookies
-      localStorage.removeItem("accessToken")
-      Cookies.remove("token")
-      localStorage.removeItem("persist:auth")
-      // Optional: Clear sessionStorage if needed
-      sessionStorage.clear()
-      router.push("/") // Redirect to the home page
-      window.location.reload() // Force reload for a clean session state
-      // Optionally display a success toast notification
-      toast.success("Logout successful")
-    } catch (err) {
-      console.error("Logout Error:", err)
-      toast.error("There was an error logging out.")
-    }
-  }
+    dispatch(logout());
+    toast.success("Logged out");
+    router.push("/login");
+  };
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "U";
 
   return (
-    <Sidebar variant="inset" collapsible="icon" {...props}>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-           <Link href="/">
-            <Image
-              src={logo}
-              alt="Quick Online Deals"
-              width={100}
-              height={40}
-              className="h-10 w-auto"
-            />
-          </Link>
+    <Sidebar variant="sidebar" collapsible="icon" {...props}>
+      {/* Header */}
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center gap-3 px-3 py-3">
+          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-sidebar-foreground text-base truncate">
+            StarterKit
+          </span>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+
+      {/* Nav */}
+      <SidebarContent className="py-4">
         <SidebarGroup>
           <SidebarGroupContent>
-         <SidebarMenu className="space-y-1">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href
-              const IconComponent = item.icon
+            <SidebarMenu className="space-y-0.5 px-2">
+              {menuItems.map((item) => {
+                const isActive =
+                  pathname === item.href || pathname.startsWith(item.href + "/");
 
-              return (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    className={`
-                      w-full h-12 rounded-lg transition-all duration-200 hover:bg-gray-50
-                      ${
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={item.title}
+                      className={cn(
+                        "h-9 rounded-lg transition-all duration-150",
                         isActive
-                          ? "bg-gradient-to-r from-purple-500 to-bprimary hover:text-white text-white hover:from-purple-600 hover:to-bprimary"
-                          : "text-gray-600 hover:text-gray-900"
-                      }
-                    `}
-                  >
-                    <Link href={item.href} className="flex items-center gap-3 px-3">
-                      <IconComponent className="h-8 w-8 flex-shrink-0" />
-                      <span className="font-medium">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
-          </SidebarMenu>
+                          ? "bg-brand text-white hover:bg-brand hover:text-white"
+                          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      )}
+                    >
+                      <Link href={item.href} className="flex items-center gap-3">
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <span className="text-sm font-medium">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+
+      {/* Footer: user + logout */}
+      <SidebarFooter className="border-t border-sidebar-border p-2">
         <SidebarMenu>
+          {/* User info */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Logout">
-              <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-2">
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </Button>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-8 h-8 bg-brand/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-brand">{initials}</span>
+              </div>
+              <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                <p className="text-xs font-medium text-sidebar-foreground truncate">
+                  {user?.name ?? "User"}
+                </p>
+                <p className="text-xs text-sidebar-foreground/50 truncate">
+                  {user?.email ?? ""}
+                </p>
+              </div>
+            </div>
+          </SidebarMenuItem>
+
+          {/* Logout */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleLogout}
+              tooltip="Logout"
+              className="text-sidebar-foreground/60 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-sm">Logout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

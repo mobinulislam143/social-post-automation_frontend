@@ -1,16 +1,23 @@
 import AuthWrapper from "@/components/auth/AuthWrapper";
-// import ResetPassword from "@/components/auth/ResetPasswordModal";
+import ResetPasswordModal from "@/components/auth/ResetPasswordModal";
 
+export default function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) {
+  return (
+    <AuthWrapper>
+      <ResetPasswordModalWrapper searchParams={searchParams} />
+    </AuthWrapper>
+  );
+}
 
-export default function Page() {
-
-
-    return (
-        <div >
-            <AuthWrapper>
-                <p>reset password</p>
-                {/* <ResetPassword /> */}
-            </AuthWrapper>
-        </div>
-    );
+async function ResetPasswordModalWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) {
+  const { token = "" } = await searchParams;
+  return <ResetPasswordModal token={token} />;
 }

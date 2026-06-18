@@ -1,20 +1,17 @@
-"use client"
+"use client";
 
-import { BasicForm } from "./form/BasicForm"
-import { NotificationForm } from "./form/NotificationForm"
-import { PasswordForm } from "./form/PasswordForm"
+import { BasicForm }        from "./form/BasicForm";
+import { NotificationForm } from "./form/NotificationForm";
+import { PasswordForm }     from "./form/PasswordForm";
 
+type Section = "basic" | "account" | "notifications";
 
-interface SettingsContentProps {
-  activeSection: "basic" | "account" | "notifications"
-}
-
-export function SettingsContent({ activeSection }: SettingsContentProps) {
+export function SettingsContent({ activeSection }: { activeSection: Section }) {
   return (
-    <div className="flex-1 bg-white rounded-lg shadow-sm p-6">
-      {activeSection === "basic" && <BasicForm />}
-      {activeSection === "account" && <PasswordForm />}
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 animate-fade-up">
+      {activeSection === "basic"         && <BasicForm />}
+      {activeSection === "account"       && <PasswordForm />}
       {activeSection === "notifications" && <NotificationForm />}
     </div>
-  )
+  );
 }

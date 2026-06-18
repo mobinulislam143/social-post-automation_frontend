@@ -1,163 +1,161 @@
 "use client";
-import { useState, useId } from "react";
+
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import ForgotPasswordModal from "./ForgotPasswordModal";
-import ResetPasswordModal from "./ResetPasswordModal";
-import AnimationWrapper from "../common/AnimationWrapper";
-// import ForgotPasswordModal from "./ForgotPasswordModal";
-// import ResetPasswordModal from "./ResetPasswordModal";
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
+import { useLoginMutation } from "@/store/api/authApi";
+import { setCredentials } from "@/store/slices/authSlice";
+import { useAppDispatch } from "@/store/hooks";
+import { loginSchema, type LoginFormValues } from "@/validations/auth";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
-  const emailId = useId();
-  const passwordId = useId();
+  const dispatch  = useAppDispatch();
+  const router    = useRouter();
+  const [login, { isLoading }] = useLoginMutation();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
+  const onSubmit = async (data: LoginFormValues) => {
     try {
-      // Your existing login logic here
-      console.log("Login data:", data);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      console.log("Login successful!");
-    } catch (error) {
-      console.error("Login failed:", error);
-    } finally {
-      setIsLoading(false);
+      const result = await login(data).unwrap();
+      dispatch(setCredentials(result));
+      toast.success("Welcome back!");
+      router.push("/dashboard/overview");
+    } catch {
+      toast.error("Invalid email or password.");
     }
   };
 
   return (
-    <AnimationWrapper
-      animation="fade-up"
-      delay={0.1}
-      className="bg-white rounded-2xl shadow-xl lg:px-8 lg:py-8 py-8 px-4 w-full"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600 text-sm">Login into your account</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
+        <p className="mt-1.5 text-sm text-gray-500">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-brand font-medium hover:text-brand-dark transition-colors"
+          >
+            Create one free
+          </Link>
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Email Field */}
-        <div>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Email */}
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+            Email address
+          </Label>
           <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <Input
-              id={emailId}
+              id="email"
               type="email"
-              placeholder="Enter Email"
-              className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              placeholder="you@example.com"
+              autoComplete="email"
+              className="pl-10 h-11 border-gray-200 focus-visible:ring-brand/30 focus-visible:border-brand transition-colors"
               {...register("email")}
             />
           </div>
           {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+            <p className="text-red-500 text-xs mt-1 animate-fade-in">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
-        {/* Password Field */}
-        <div>
+        {/* Password */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Password
+            </Label>
+            <button
+              type="button"
+              onClick={() => setShowForgot(true)}
+              className="text-xs text-brand hover:text-brand-dark font-medium transition-colors cursor-pointer"
+            >
+              Forgot password?
+            </button>
+          </div>
           <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <Input
-              id={passwordId}
+              id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              placeholder="Min 8 characters"
+              autoComplete="current-password"
+              className="pl-10 pr-10 h-11 border-gray-200 focus-visible:ring-brand/30 focus-visible:border-brand transition-colors"
               {...register("password")}
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400" />
-              ) : (
-                <Eye className="h-5 w-5 text-gray-400" />
-              )}
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+            <p className="text-red-500 text-xs mt-1 animate-fade-in">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
-        {/* Remember Me and Forgot Password */}
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            onClick={() => setShowForgotPassword(true)}
-            className="text-sm text-green-600 hover:text-green-700 font-medium cursor-pointer hover:underline"
-          >
-            Forgot Password?
-          </button>
-        </div>
-
-        {/* Submit Button */}
+        {/* Submit */}
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
+          className="w-full h-11 bg-brand hover:bg-brand-dark text-white font-medium rounded-xl transition-all duration-200 gap-2 cursor-pointer mt-2"
         >
-          {isLoading ? "Logging in..." : "Log In"}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Signing in…
+            </span>
+          ) : (
+            <>
+              Sign in <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </Button>
-
-        {/* Sign Up Link */}
-        <p className="text-center text-sm text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="text-green-600 hover:text-green-700 font-medium cursor-pointer hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
       </form>
 
-      {/* Modals */}
-      <ForgotPasswordModal
-        isOpen={showForgotPassword}
-        onClose={() => setShowForgotPassword(false)}
-      />
-      <ResetPasswordModal
-        isOpen={showResetPassword}
-        onClose={() => setShowResetPassword(false)}
-      />
-    </AnimationWrapper>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-100" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs text-gray-400">
+            Secure login powered by JWT
+          </span>
+        </div>
+      </div>
+
+      <ForgotPasswordModal isOpen={showForgot} onClose={() => setShowForgot(false)} />
+    </div>
   );
 }
