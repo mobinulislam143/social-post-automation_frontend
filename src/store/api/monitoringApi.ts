@@ -7,6 +7,7 @@ import {
   ClientMetrics,
   ClientStatus,
   DashboardSummary,
+  MetricsOverview,
   MonitoredClient,
 } from "@/types/monitoring.type";
 
@@ -83,6 +84,19 @@ export const monitoringApi = baseApi.injectEndpoints({
         url: `/checks/metrics/${clientId}?days=${days}`,
         method: "GET",
       }),
+      providesTags: (_res, _err, { clientId }) => [
+        { type: "MonitorCheck", id: `metrics-${clientId}` },
+      ],
+    }),
+
+    getMonitorMetricsOverview: builder.query<
+      ApiEnvelope<MetricsOverview>,
+      { days?: number } | void
+    >({
+      query: (args) => ({
+        url: `/checks/metrics/overview?days=${args?.days ?? 30}`,
+        method: "GET",
+      }),
       providesTags: ["MonitorCheck"],
     }),
 
@@ -110,4 +124,5 @@ export const {
   useRunMonitorCheckMutation,
   useGetMonitorHistoryQuery,
   useGetMonitorMetricsQuery,
+  useGetMonitorMetricsOverviewQuery,
 } = monitoringApi;

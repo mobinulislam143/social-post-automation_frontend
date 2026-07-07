@@ -39,22 +39,70 @@ export interface MetricPoint {
   postCount: number | null;
 }
 
+export interface MetricGrowth {
+  current: number | null;
+  delta: number | null;
+  percent: number | null;
+}
+
 export interface ClientMetrics {
-  client: { id: string; name: string };
+  client: { id: string; name: string; division: string };
+  summary: {
+    totalFollowers: number;
+    totalFollowing: number;
+    totalPosts: number;
+    platformsWithData: number;
+    platformsTracked: number;
+    snapshotCount: number;
+    lastCheckedAt: string | null;
+    followerGrowth: { delta: number | null; percent: number | null };
+  };
   profiles: Array<{
     id: string;
     platform: SocialPlatform;
     username: string;
+    url: string;
     followers: number | null;
     following: number | null;
     postCount: number | null;
     lastCheckedAt: string | null;
+    growth: {
+      followers: MetricGrowth;
+      following: MetricGrowth;
+      postCount: MetricGrowth;
+    };
   }>;
   series: Array<{
     profileId: string;
     platform: SocialPlatform;
     username: string;
     points: MetricPoint[];
+  }>;
+}
+
+export interface MetricsOverview {
+  days: number;
+  clientCount: number;
+  profileCount: number;
+  profilesWithData: number;
+  totalFollowers: number;
+  totalFollowing: number;
+  totalPosts: number;
+  byPlatform: Array<{
+    platform: SocialPlatform;
+    profiles: number;
+    withData: number;
+    followers: number;
+    following: number;
+    posts: number;
+  }>;
+  topClients: Array<{
+    id: string;
+    name: string;
+    division: string;
+    totalFollowers: number;
+    platformsWithData: number;
+    lastCheckedAt: string | null;
   }>;
 }
 
