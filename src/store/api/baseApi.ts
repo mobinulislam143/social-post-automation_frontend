@@ -6,8 +6,7 @@ import {
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 import { env } from "@/config/env";
-import { logout, setAccessToken } from "@/store/slices/authSlice";
-import type { RefreshTokenResponse } from "@/types/api";
+import { logout, setTokens } from "@/store/slices/authSlice";
 import type { RootState } from "@/store/store";
 
 const rawBaseQuery = fetchBaseQuery({
@@ -15,18 +14,19 @@ const rawBaseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
     const { accessToken } = state.auth;
-    const { activeOrgId } = state.session;
 
     if (accessToken) {
       headers.set("Authorization", `Bearer ${accessToken}`);
-    }
-    if (activeOrgId) {
-      headers.set("X-Org-Id", activeOrgId);
     }
     return headers;
   },
 });
 
+// Backend refresh endpoint: POST /auth/refresh-token → envelope
+// { success, data: { accessToken, refreshToken } }.
+// The backend ROTATES the refresh token (old one is revoked), so both new
+// tokens must be stored — keeping the old refresh token logs the user out
+// on the next refresh.
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -40,14 +40,22 @@ const baseQueryWithReauth: BaseQueryFn<
 
     if (refreshToken) {
       const refreshResult = await rawBaseQuery(
-        { url: "/auth/refresh", method: "POST", body: { refreshToken } },
+        { url: "/auth/refresh-token", method: "POST", body: { refreshToken } },
         api,
         extraOptions
       );
 
-      if (refreshResult.data) {
-        const { accessToken } = refreshResult.data as RefreshTokenResponse;
-        api.dispatch(setAccessToken(accessToken));
+      const refreshed = (refreshResult.data as
+        | { data?: { accessToken?: string; refreshToken?: string } }
+        | undefined)?.data;
+
+      if (refreshed?.accessToken && refreshed.refreshToken) {
+        api.dispatch(
+          setTokens({
+            accessToken: refreshed.accessToken,
+            refreshToken: refreshed.refreshToken,
+          })
+        );
         result = await rawBaseQuery(args, api, extraOptions);
       } else {
         api.dispatch(logout());
@@ -63,7 +71,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Auth", "Organization", "Member", "Invite", "User", "Role", "AuditLog"],
+  tagTypes: ["Auth", "User", "MonitorClient", "MonitorCheck"],
   endpoints: () => ({}),
 });
 

@@ -16,7 +16,7 @@ export interface PaginatedResponse<T> {
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
-export type Role = "owner" | "admin" | "member";
+export type Role = "admin" | "viewer";
 
 export interface AuthUser {
   id: string;

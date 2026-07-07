@@ -38,9 +38,13 @@ export default function Login() {
       const result = await login(data).unwrap();
       dispatch(setCredentials(result));
       toast.success("Welcome back!");
-      router.push("/dashboard/overview");
-    } catch {
-      toast.error("Invalid email or password.");
+      router.push("/dashboard/monitoring");
+    } catch (err) {
+      // Surface the backend's reason (pending approval / blocked) when present.
+      const message =
+        (err as { data?: { message?: string } })?.data?.message ??
+        "Invalid email or password.";
+      toast.error(message);
     }
   };
 
@@ -50,13 +54,14 @@ export default function Login() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
         <p className="mt-1.5 text-sm text-gray-500">
-          Don&apos;t have an account?{" "}
+          New here?{" "}
           <Link
             href="/register"
             className="text-brand font-medium hover:text-brand-dark transition-colors"
           >
-            Create one free
-          </Link>
+            Create an account
+          </Link>{" "}
+          — an admin approves it before first sign-in.
         </p>
       </div>
 

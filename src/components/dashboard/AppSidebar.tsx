@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
+import { useLogoutMutation } from "@/store/api/authApi";
 import {
   Sidebar,
   SidebarContent,
@@ -17,27 +18,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  LayoutDashboard,
-  Users,
-  UserCheck,
-  Package,
-  MessageCircle,
-  Settings,
-  LogOut,
-  Zap,
-  ShieldCheck,
-} from "lucide-react";
+import { Users, LogOut, Zap, Activity, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { title: "Overview", icon: LayoutDashboard, href: "/dashboard/overview" },
+  { title: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
+  { title: "Metrics", icon: LineChart, href: "/dashboard/metrics" },
   { title: "Users", icon: Users, href: "/dashboard/users" },
-  { title: "Providers", icon: UserCheck, href: "/dashboard/providers" },
-  { title: "Quality", icon: Package, href: "/dashboard/qualitylist" },
-  { title: "Messages", icon: MessageCircle, href: "/dashboard/messages" },
-  { title: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
-  { title: "Settings", icon: Settings, href: "/dashboard/settings" },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -45,8 +32,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const refreshToken = useAppSelector((state) => state.auth.refreshToken);
+  const [revokeSession] = useLogoutMutation();
 
   const handleLogout = () => {
+    // Revoke the refresh token server-side (fire-and-forget), then clear
+    // local state + cookies.
+    revokeSession({ refreshToken }).unwrap().catch(() => {});
     dispatch(logout());
     toast.success("Logged out");
     router.push("/login");
@@ -65,7 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Zap className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-sidebar-foreground text-base truncate">
-            StarterKit
+            OMIRA Monitor
           </span>
         </div>
       </SidebarHeader>

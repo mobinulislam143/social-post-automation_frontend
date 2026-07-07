@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Zap, ShieldCheck, Zap as ZapIcon, Users } from "lucide-react";
 
 const features = [
-  { icon: ShieldCheck, text: "Secure authentication with JWT" },
-  { icon: ZapIcon,     text: "Role-based access control built in" },
-  { icon: Users,       text: "Multi-tenant workspace management" },
+  { icon: ZapIcon,     text: "Hourly automated checks on every client" },
+  { icon: ShieldCheck, text: "Complete / Partial / Missing at a glance" },
+  { icon: Users,       text: "Admin and Viewer roles" },
 ];
 
 export default function AuthWrapper({ children }: { children: ReactNode }) {
@@ -35,7 +35,7 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
             <div className="w-9 h-9 bg-brand rounded-xl flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-white text-xl">StarterKit</span>
+            <span className="font-bold text-white text-xl">OMIRA Monitor</span>
           </Link>
 
           {/* Main copy */}
@@ -45,12 +45,12 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
                 Welcome back
               </span>
               <h2 className="mt-3 text-4xl xl:text-5xl font-bold text-white leading-tight">
-                Build your SaaS{" "}
-                <span className="text-brand">10× faster</span>
+                Who posted <span className="text-brand">today?</span>
               </h2>
               <p className="mt-5 text-gray-400 text-lg leading-relaxed max-w-md">
-                A production-ready Next.js starter with auth, RBAC, RTK Query,
-                and a professional admin dashboard — all wired and ready.
+                One dashboard for every client&apos;s Instagram, YouTube, and
+                TikTok — checked automatically every hour, so you only follow
+                up with the ones who missed.
               </p>
             </div>
 
@@ -67,13 +67,12 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
             </ul>
           </div>
 
-          {/* Bottom quote */}
+          {/* Bottom note */}
           <div className="border-t border-white/10 pt-8 animate-fade-up delay-300">
-            <p className="text-gray-500 text-sm italic">
-              &ldquo;Saved us two weeks of boilerplate. The RTK Query setup alone
-              was worth it.&rdquo;
+            <p className="text-gray-500 text-sm">
+              OMIRA internal tool — monitoring the social presence of the
+              entire ecosystem.
             </p>
-            <p className="text-gray-600 text-xs mt-2">— Ariana M., CTO at Launchpad</p>
           </div>
         </div>
       </div>
@@ -86,7 +85,7 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
             <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">StarterKit</span>
+            <span className="font-bold text-gray-900 text-lg">OMIRA Monitor</span>
           </Link>
         </div>
 

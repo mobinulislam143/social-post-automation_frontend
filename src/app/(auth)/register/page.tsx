@@ -5,7 +5,7 @@ export default function Page() {
     return (
         <div>
             <AuthWrapper>
-                <Register/>
+                <Register />
             </AuthWrapper>
         </div>
     );

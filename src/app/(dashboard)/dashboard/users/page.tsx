@@ -1,9 +1,9 @@
-import UserList from "@/components/dashboard/UserList";
+import UsersManager from "@/components/dashboard/UsersManager";
 
 export default function Page() {
     return (
         <div>
-            <UserList/>
+            <UsersManager/>
         </div>
     );
 }
