@@ -223,9 +223,9 @@ export default function ClientFormModal({ open, onOpenChange, client }: Props) {
               </div>
             ))}
             <p className="text-xs text-gray-500">
-              Profile URLs are generated automatically from the username — Instagram,
-              YouTube and TikTok are checked hourly; other platforms are stored for
-              future scrapers.
+              Profile URLs are generated automatically from the username. Instagram,
+              YouTube, TikTok, LinkedIn, and X are checked hourly for today&apos;s posts
+              and stories (Instagram/TikTok).
             </p>
           </div>
         </div>

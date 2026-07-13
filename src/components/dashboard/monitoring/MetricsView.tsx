@@ -68,7 +68,7 @@ const RANGES = [
   { value: "90", label: "Last 90 days" },
 ];
 
-const TRACKED: SocialPlatform[] = ["INSTAGRAM", "YOUTUBE", "TIKTOK", "LINKEDIN"];
+const TRACKED: SocialPlatform[] = ["INSTAGRAM", "YOUTUBE", "TIKTOK", "LINKEDIN", "X"];
 
 function formatCount(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
@@ -207,7 +207,7 @@ export default function MetricsView() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Metrics</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Audience numbers across Instagram, YouTube, TikTok, and LinkedIn — updated every check.
+            Audience numbers across Instagram, YouTube, TikTok, LinkedIn, and X — updated every check.
           </p>
         </div>
         <div className="flex flex-col xs:flex-row gap-2">

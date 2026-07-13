@@ -23,8 +23,12 @@ export interface SocialProfile {
   isActive: boolean;
   lastStatus: ProfileCheckStatus | null;
   lastPostAt: string | null;
+  postedToday: boolean | null;
   lastCheckedAt: string | null;
   lastError: string | null;
+  lastStoryStatus: ProfileCheckStatus | null;
+  lastStoryAt: string | null;
+  storyToday: boolean | null;
   followers: number | null;
   following: number | null;
   postCount: number | null;
@@ -129,6 +133,10 @@ export interface ProfileCheckResult {
   platform: SocialPlatform;
   status: ProfileCheckStatus;
   lastPostAt: string | null;
+  postedToday: boolean | null;
+  lastStoryAt: string | null;
+  storyStatus: ProfileCheckStatus | null;
+  storyToday: boolean | null;
   error: string | null;
 }
 
@@ -145,6 +153,8 @@ export interface DashboardSummary {
   totals: Record<ClientStatus | "ALL", number>;
   lastCheckedAt: string | null;
   supportedWindowHours: number;
+  postWindowMode: "today" | "hours";
+  monitorTimezone: string;
 }
 
 export interface CheckRunSummary {
@@ -157,6 +167,10 @@ export interface CheckRunSummary {
     username: string;
     status: ProfileCheckStatus;
     lastPostAt: string | null;
+    postedToday: boolean | null;
+    lastStoryAt: string | null;
+    storyStatus: ProfileCheckStatus | null;
+    storyToday: boolean | null;
     error: string | null;
   }>;
 }

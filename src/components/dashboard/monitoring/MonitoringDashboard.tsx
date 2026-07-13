@@ -64,14 +64,21 @@ import CustomPaginations from "../../common/CustomPaginations";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Social posting monitor — one row per client, one column per platform.
-// Each cell answers the only question that matters: did they post in the
-// last 24h?  ✓ Posted / ✗ No post / ⚠ Error / — no profile.
+// Each cell shows whether feed content AND stories (where supported)
+// were posted today.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 25;
 
-// The platforms shown as columns — each cell answers "posted in last 24h?".
-const PLATFORM_COLUMNS: SocialPlatform[] = ["INSTAGRAM", "YOUTUBE", "TIKTOK", "LINKEDIN"];
+const PLATFORM_COLUMNS: SocialPlatform[] = [
+  "INSTAGRAM",
+  "YOUTUBE",
+  "TIKTOK",
+  "LINKEDIN",
+  "X",
+];
+
+const STORY_PLATFORMS: SocialPlatform[] = ["INSTAGRAM", "TIKTOK"];
 
 const STATUS_FILTERS: Array<{ value: ClientStatus | "ALL"; label: string }> = [
   { value: "ALL", label: "All statuses" },
@@ -82,7 +89,58 @@ const STATUS_FILTERS: Array<{ value: ClientStatus | "ALL"; label: string }> = [
   { value: "PENDING", label: "Pending" },
 ];
 
-/** One table cell: the latest post result for a client's profile on a platform. */
+function ContentLine({
+  label,
+  ok,
+  fail,
+  error,
+  pending,
+}: {
+  label: string;
+  ok: boolean;
+  fail: boolean;
+  error: boolean;
+  pending: boolean;
+}) {
+  if (pending) {
+    return (
+      <div className="flex items-center gap-1 text-[11px] text-gray-400">
+        <span className="w-9 shrink-0">{label}</span>
+        <span>not checked</span>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex items-center gap-1 text-[11px]">
+        <span className="w-9 shrink-0 text-gray-500">{label}</span>
+        <AlertTriangle className="w-3 h-3 text-orange-500" />
+        <span className="text-orange-600 font-medium">Error</span>
+      </div>
+    );
+  }
+  if (ok) {
+    return (
+      <div className="flex items-center gap-1 text-[11px]">
+        <span className="w-9 shrink-0 text-gray-500">{label}</span>
+        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+        <span className="text-emerald-700 font-medium">Today</span>
+      </div>
+    );
+  }
+  if (fail) {
+    return (
+      <div className="flex items-center gap-1 text-[11px]">
+        <span className="w-9 shrink-0 text-gray-500">{label}</span>
+        <XCircle className="w-3 h-3 text-red-500" />
+        <span className="text-red-600 font-medium">No</span>
+      </div>
+    );
+  }
+  return null;
+}
+
+/** One table cell: post + story status for a platform profile. */
 function PlatformCell({ profile }: { profile: SocialProfile | undefined }) {
   if (!profile) {
     return (
@@ -92,64 +150,46 @@ function PlatformCell({ profile }: { profile: SocialProfile | undefined }) {
     );
   }
 
-  if (!profile.lastStatus) {
-    return (
-      <a href={profile.url} target="_blank" rel="noreferrer" title={`@${profile.username} — not checked yet`}>
-        <span className="text-xs text-gray-400">not checked</span>
-      </a>
-    );
-  }
+  const supportsStory = STORY_PLATFORMS.includes(profile.platform);
+  const pending = !profile.lastStatus;
+  const postError = profile.lastStatus === "ERROR";
+  const postToday = profile.postedToday === true || profile.lastStatus === "POSTED";
+  const postNo = profile.postedToday === false || profile.lastStatus === "NO_RECENT_POST";
 
-  if (profile.lastStatus === "POSTED") {
-    return (
-      <a
-        href={profile.url}
-        target="_blank"
-        rel="noreferrer"
-        title={`@${profile.username}`}
-        className="inline-flex items-center gap-1.5"
-      >
-        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-        <span className="text-sm font-medium text-emerald-700">Posted</span>
-        {profile.lastPostAt && (
-          <span className="text-xs text-gray-400 hidden xl:inline">
-            {formatDistanceToNow(new Date(profile.lastPostAt), { addSuffix: true })}
-          </span>
-        )}
-      </a>
-    );
-  }
-
-  if (profile.lastStatus === "NO_RECENT_POST") {
-    return (
-      <a
-        href={profile.url}
-        target="_blank"
-        rel="noreferrer"
-        title={`@${profile.username}${profile.lastPostAt ? ` — last post ${formatDistanceToNow(new Date(profile.lastPostAt), { addSuffix: true })}` : ""}`}
-        className="inline-flex items-center gap-1.5"
-      >
-        <XCircle className="w-4 h-4 text-red-500" />
-        <span className="text-sm font-medium text-red-600">No post</span>
-        {profile.lastPostAt && (
-          <span className="text-xs text-gray-400 hidden xl:inline">
-            last {formatDistanceToNow(new Date(profile.lastPostAt), { addSuffix: true })}
-          </span>
-        )}
-      </a>
-    );
-  }
+  const storyError = profile.lastStoryStatus === "ERROR";
+  const storyToday = profile.storyToday === true || profile.lastStoryStatus === "POSTED";
+  const storyNo =
+    profile.lastStoryStatus === "NO_RECENT_POST" || profile.storyToday === false;
 
   return (
     <a
       href={profile.url}
       target="_blank"
       rel="noreferrer"
-      title={profile.lastError ?? "Check failed"}
-      className="inline-flex items-center gap-1.5"
+      title={`@${profile.username}`}
+      className="block space-y-0.5 min-w-[88px]"
     >
-      <AlertTriangle className="w-4 h-4 text-orange-500" />
-      <span className="text-sm font-medium text-orange-600">Error</span>
+      <ContentLine
+        label="Post"
+        pending={pending}
+        error={postError}
+        ok={!pending && !postError && postToday}
+        fail={!pending && !postError && postNo}
+      />
+      {supportsStory && (
+        <ContentLine
+          label="Story"
+          pending={pending}
+          error={storyError}
+          ok={!pending && !storyError && storyToday}
+          fail={!pending && !storyError && storyNo}
+        />
+      )}
+      {profile.lastPostAt && !pending && (
+        <span className="text-[10px] text-gray-400 hidden xl:block pl-9">
+          last {formatDistanceToNow(new Date(profile.lastPostAt), { addSuffix: true })}
+        </span>
+      )}
     </a>
   );
 }
@@ -223,7 +263,12 @@ export default function MonitoringDashboard() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Social Posting Monitor</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Did each client post in the last {summary?.data.supportedWindowHours ?? 24}h?
+            {summary?.data.postWindowMode === "hours"
+              ? `Did each client post in the last ${summary?.data.supportedWindowHours ?? 24}h?`
+              : "Did each client post today?"}
+            {summary?.data.postWindowMode === "today" && summary?.data.monitorTimezone && (
+              <span className="hidden sm:inline"> ({summary.data.monitorTimezone})</span>
+            )}
             {summary?.data.lastCheckedAt && (
               <>
                 {" · last check "}
@@ -349,7 +394,7 @@ export default function MonitoringDashboard() {
                 <TableHead key={platform} className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <span className="inline-flex items-center gap-1.5">
                     <PlatformIcon platform={platform} className="w-3.5 h-3.5" />
-                    {platform.charAt(0) + platform.slice(1).toLowerCase()}
+                    {platform === "X" ? "X / Twitter" : platform.charAt(0) + platform.slice(1).toLowerCase()}
                   </span>
                 </TableHead>
               ))}
@@ -362,12 +407,12 @@ export default function MonitoringDashboard() {
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell colSpan={9}><Skeleton className="h-8 w-full" /></TableCell>
                 </TableRow>
               ))
             ) : clients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-sm text-gray-500 py-10">
+                <TableCell colSpan={9} className="text-center text-sm text-gray-500 py-10">
                   No clients found.
                 </TableCell>
               </TableRow>

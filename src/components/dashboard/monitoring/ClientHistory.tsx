@@ -138,12 +138,29 @@ export default function ClientHistory({ clientId }: { clientId: string }) {
                   <TableCell>
                     <div className="space-y-1.5">
                       {check.profileResults.map((r) => (
-                        <div key={r.id} className="flex items-center gap-2 text-sm">
+                        <div key={r.id} className="flex flex-wrap items-center gap-2 text-sm">
                           <PlatformIcon platform={r.platform} />
                           <span className="text-gray-600 min-w-0 truncate">
                             @{usernameOf(r.profileId)}
                           </span>
                           <ProfileStatusBadge status={r.status} />
+                          {r.postedToday === true && (
+                            <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50 text-xs">
+                              post today
+                            </Badge>
+                          )}
+                          {r.storyStatus && (
+                            <Badge
+                              variant="outline"
+                              className={
+                                r.storyToday
+                                  ? "text-emerald-700 border-emerald-200 bg-emerald-50 text-xs"
+                                  : "text-red-700 border-red-200 bg-red-50 text-xs"
+                              }
+                            >
+                              story {r.storyToday ? "today" : "none"}
+                            </Badge>
+                          )}
                           {r.lastPostAt && (
                             <span className="text-xs text-gray-400">
                               last post {formatDistanceToNow(new Date(r.lastPostAt), { addSuffix: true })}

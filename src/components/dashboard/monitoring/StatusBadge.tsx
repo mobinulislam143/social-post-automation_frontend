@@ -55,8 +55,8 @@ export function StatusBadge({ status }: { status: ClientStatus }) {
 // ─── Profile-level result badge (history / expanded rows) ────────────────────
 
 const PROFILE_STYLES: Record<ProfileCheckStatus, { label: string; className: string }> = {
-  POSTED: { label: "Posted", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  NO_RECENT_POST: { label: "No post", className: "bg-red-100 text-red-700 border-red-200" },
+  POSTED: { label: "Posted today", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  NO_RECENT_POST: { label: "No post today", className: "bg-red-100 text-red-700 border-red-200" },
   ERROR: { label: "Error", className: "bg-orange-100 text-orange-700 border-orange-200" },
 };
 
